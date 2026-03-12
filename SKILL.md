@@ -67,6 +67,26 @@ Once the user provides a company name or URL, proceed to Phase 1B (Company Resea
 
 When the user provides a specific company name or startups.rip URL:
 
+### Step 0: Validate Company Status
+
+Before researching, verify the company has actually failed, shut down, or been acqui-hired:
+
+1. **Check startups.rip** — If found, the company is confirmed dead/failed. Proceed to Step 1.
+2. **Check the local database** — If found with status "dead" or "acquired" (acqui-hire), proceed to Step 1.
+3. **If not found on startups.rip AND not in database** — Use WebSearch to check if the company is still operating.
+
+**If the company is still alive and operating** (e.g., user enters "Stripe", "OpenAI", "Figma"):
+- Tell the user: "**[Company] is still alive and operating** — this skill analyzes startups that have failed or shut down. I can't perform an autopsy on a living patient!"
+- Offer two options via AskUserQuestion (header: "Next Step"):
+  - "Try another company" — Ask for a different company name → restart Phase 1B
+  - "Analyze my industry instead" — Switch to Mode A → go back to Phase 1 questions
+
+**If the company was acquired for a significant exit** (e.g., >$50M, clearly a success story):
+- Tell the user: "[Company] was acquired for $[X] — that's a success story, not a failure."
+- Offer the same two options above.
+
+Only proceed to Step 1 when the company is confirmed dead, shut down, or acqui-hired at low/undisclosed value.
+
 ### Step 1: Gather Data
 
 1. **If startups.rip URL provided:** Fetch the page with WebFetch and extract all available data
