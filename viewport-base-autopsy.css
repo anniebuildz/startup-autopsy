@@ -1,0 +1,145 @@
+/* ===========================================
+   VIEWPORT FITTING: AUTOPSY BASE STYLES
+   Forked from frontend-slides/viewport-base.css by @zarazhangrui
+
+   Changes from original:
+   - Removed scroll-snap (free scrolling, keyboard nav only)
+   - Larger default typography for data-heavy content
+   - Wider content containers (95vw/1200px vs 90vw/1000px)
+   =========================================== */
+
+/* 1. Lock html/body to viewport — NO scroll-snap */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    /* scroll-snap REMOVED: users scroll freely, arrow keys jump between slides */
+    scroll-behavior: smooth;
+}
+
+/* 2. Each slide = exact viewport height */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    /* scroll-snap-align REMOVED */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* 3. Content container — wider than default for data-dense slides */
+.slide-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+    padding: var(--slide-padding);
+    width: min(95vw, 1200px);
+    margin: 0 auto;
+}
+
+/* 4. Typography — larger defaults for data-heavy presentations */
+:root {
+    --title-size: clamp(1.8rem, 5.5vw, 4.5rem);
+    --h2-size: clamp(1.4rem, 4vw, 3rem);
+    --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+    --body-size: clamp(0.85rem, 1.6vw, 1.25rem);
+    --small-size: clamp(0.75rem, 1.1vw, 1rem);
+
+    --slide-padding: clamp(1.5rem, 3vw, 3rem);
+    --content-gap: clamp(0.5rem, 2vw, 2rem);
+    --element-gap: clamp(0.25rem, 1vw, 1rem);
+}
+
+/* 5. Cards/containers — wider max-width for autopsy content */
+.card, .container, .content-box {
+    max-width: min(95vw, 1200px);
+    max-height: min(80vh, 700px);
+}
+
+/* 6. Lists auto-scale with viewport */
+.feature-list, .bullet-list {
+    gap: clamp(0.4rem, 1vh, 1rem);
+}
+
+.feature-list li, .bullet-list li {
+    font-size: var(--body-size);
+    line-height: 1.4;
+}
+
+/* 7. Grids adapt to available space */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* 8. Images constrained to viewport */
+img, .image-container {
+    max-width: 100%;
+    max-height: min(50vh, 400px);
+    object-fit: contain;
+}
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1rem, 3vw, 1.75rem);
+    }
+}
+
+@media (max-height: 600px) {
+    :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.1rem, 4vw, 2rem);
+        --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+    }
+}
+
+@media (max-height: 500px) {
+    :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1rem, 3.5vw, 1.5rem);
+        --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+        --body-size: clamp(0.65rem, 1vw, 0.85rem);
+    }
+}
+
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===========================================
+   REDUCED MOTION
+   =========================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}

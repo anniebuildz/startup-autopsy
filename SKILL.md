@@ -103,7 +103,7 @@ If user picks "Browse all presets", list all available presets from STYLE_PRESET
 
 ### Applying the Theme
 
-1. Read [frontend-slides/viewport-base.css](frontend-slides/viewport-base.css) — include its FULL contents in the `<style>` block of every presentation.
+1. Read [viewport-base-autopsy.css](viewport-base-autopsy.css) — include its FULL contents in the `<style>` block. This is a fork of frontend-slides' viewport-base.css with scroll-snap removed and sizing tuned for data-heavy content.
 2. Read [frontend-slides/animation-patterns.md](frontend-slides/animation-patterns.md) — use for reveal animations.
 3. Load the selected preset's CSS variables from STYLE_PRESETS.md.
 
@@ -152,14 +152,14 @@ The component styles (tombstones, mind maps, case cards, etc.) should ONLY refer
 
 ### Setup
 
-Before generating, read these files from the `frontend-slides/` directory (bundled with this skill):
-- `viewport-base.css` — **MANDATORY.** Include its FULL contents in the `<style>` block.
-- `html-template.md` — HTML architecture and JS features reference
-- `animation-patterns.md` — CSS animation patterns reference
+Before generating, read these files:
+- [viewport-base-autopsy.css](viewport-base-autopsy.css) — **MANDATORY.** Include its FULL contents in the `<style>` block. (Forked from frontend-slides with scroll-snap removed and sizing tuned.)
+- [frontend-slides/html-template.md](frontend-slides/html-template.md) — HTML architecture and JS features reference
+- [frontend-slides/animation-patterns.md](frontend-slides/animation-patterns.md) — CSS animation patterns reference
 
-### CRITICAL: No Auto-Scroll
+### Scrolling Behavior
 
-**Remove `scroll-snap-type: y mandatory` from html.** The presentation must NOT auto-snap between slides. Users scroll freely, and use arrow keys (up/down) to jump between slides. Wheel scrolling is natural browser scrolling, not hijacked.
+Scroll-snap is already removed in `viewport-base-autopsy.css`. Users scroll freely.
 
 In the JS controller:
 - Arrow keys / Space / PageDown → `scrollIntoView({ behavior: 'smooth' })`
@@ -397,27 +397,15 @@ Tier 1: full opacity, larger padding. Tier 2: opacity 0.5, smaller. Slight rotat
 - `.dead-list h4`: `color: var(--accent-primary)`
 - `.alive-list h4`: `color: var(--accent-success)`
 
-### All Slides — Layout & Sizing (CRITICAL)
+### All Slides — Layout & Sizing
 - Each slide: 100vh, overflow hidden, no scrolling within slides
 - All sizes use clamp() for responsiveness
 - Reveal animations triggered by Intersection Observer (.visible class)
 - Staggered delays: .s1 through .s15 (0.1s increments)
 
-**FILL THE VIEWPORT — content must not look tiny or sparse:**
-- `.slide-content` padding: `clamp(1.5rem, 3vw, 3rem)` — NOT 4vw/4rem which wastes too much space
-- Content containers (mind maps, grids, card layouts): `max-width: min(95vw, 1200px)` — NOT 900px/1000px which leaves huge empty margins
-- Mind map `.mm-branch` case cards: use `padding: clamp(0.6rem, 1.2vw, 1.2rem)` — generous enough to be readable
-- Risk grid, survivor grid, playbook rules: `max-width: min(95vw, 1100px)`
-- These size overrides apply regardless of theme choice — they ensure data-heavy autopsy content fills the viewport properly:
-  - `--title-size: clamp(1.8rem, 5.5vw, 4.5rem)`
-  - `--h2-size: clamp(1.4rem, 4vw, 3rem)`
-  - `--body-size: clamp(0.85rem, 1.6vw, 1.25rem)`
-  - `--small-size: clamp(0.75rem, 1.1vw, 1rem)`
-  - Case card text (`.cc-story`, `.cc-metric`, `.cc-header`): `clamp(0.7rem, 0.95vw, 0.9rem)` — NOT 0.5rem/0.7vw which is unreadably small
-  - Mind map center node name: `clamp(1rem, 1.6vw, 1.5rem)`
-  - Survival box text: `clamp(0.7rem, 0.95vw, 0.9rem)`
-- Tombstones: `min-width: clamp(70px, 9vw, 110px)` with `padding: clamp(6px, 0.8vw, 12px)`
-- The overall principle: **content should fill 85-95% of the viewport width and 75-90% of the viewport height**. If the content looks like a small island in a sea of dark background, the sizes are too conservative.
+**Sizing defaults are baked into `viewport-base-autopsy.css`** (larger fonts, wider containers than the generic frontend-slides base). No manual overrides needed.
+
+The overall principle: **content should fill 85-95% of the viewport width and 75-90% of the viewport height**. If the content looks like a small island in a sea of dark background, increase sizes.
 
 ---
 
@@ -427,7 +415,7 @@ SlidePresentation class with:
 - **Keyboard nav**: Arrow keys, Space, PageDown → `scrollIntoView({ behavior: 'smooth' })`
 - **NO wheel hijacking**: Browser handles natural scrolling
 - **NO touch hijacking**: Browser handles natural swiping
-- **Progress bar**: Updates via Intersection Observer (`var(--accent-primary)` → `var(--accent-secondary)` gradient, thin, fixed top)
+- **Progress bar**: Updates via Intersection Observer (accent-primary → accent-secondary gradient, thin, fixed top)
 - **Nav dots**: Right side, updates via Intersection Observer
 - Intersection Observer adds `.visible` class at threshold 0.3
 
