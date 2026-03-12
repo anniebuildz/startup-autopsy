@@ -1,15 +1,28 @@
 ---
 name: startup-autopsy
-description: Generate a visual HTML presentation diagnosing startup death risks. Input your industry + business model, get a stunning graveyard-themed deck with cross-industry failure patterns, real case studies with specific numbers, and survival strategies from 89 YC startups (2017-2025). Trigger on industry risk analysis, startup graveyard, failure patterns, or "how do startups in X die".
+description: Generate a visual HTML presentation diagnosing startup death risks. Two modes — (A) Input your industry + business model for cross-industry failure pattern analysis, or (B) Name a specific dead startup for a deep company autopsy. Both produce stunning graveyard-themed decks with real data from 89 YC startups (2017-2025). Trigger on industry risk analysis, startup graveyard, failure patterns, company autopsy, or "how do startups in X die".
 ---
 
 # Startup Autopsy
 
-User inputs industry + business model → Identify their deadliest failure patterns → Generate a visual HTML presentation pulling the best case studies from the ENTIRE database (cross-industry), not just their category.
+Two modes of operation:
+- **Mode A (Industry):** User inputs industry + business model → cross-industry failure pattern analysis
+- **Mode B (Company):** User names a specific startup (or provides a startups.rip URL) → deep autopsy of that one company
 
 ---
 
-## Phase 1: Two-Layer Selection
+## Phase 0: Mode Detection
+
+Check the user's message for:
+- **A specific company name or startups.rip URL** → Mode B (Company Autopsy)
+- **An industry / business model description** → Mode A (Industry Autopsy)
+- **Neither** → Ask Phase 1 questions (which include the option to pick Mode B)
+
+**Key rule:** Mode B triggers ONLY when the user explicitly provides a company. The default path is always Mode A (ask questions).
+
+---
+
+## Phase 1: Two-Layer Selection (Mode A default)
 
 Ask TWO questions in a SINGLE AskUserQuestion call:
 
@@ -35,6 +48,156 @@ Options:
 - Marketplace — Commission/take-rate on transactions between parties
 
 If the user already specified both in their message, skip and go directly to Phase 2.
+
+---
+
+## Phase 1B: Company Research (Mode B only)
+
+When the user provides a specific company name or startups.rip URL:
+
+### Step 1: Gather Data
+
+1. **If startups.rip URL provided:** Fetch the page with WebFetch and extract all available data
+2. **If company name only:** Fetch `https://startups.rip/company/[name]` (lowercase, hyphenated). If 404, use WebSearch to find the company's post-mortem data
+3. **Check the local database:** Read [startup-database-v2.json](startup-database-v2.json) and search for the company. If found, merge database data with web-fetched data
+
+### Step 2: Build Company Profile
+
+Extract or research these fields:
+- **Basics:** Name, founded date, shutdown/acquisition date, location
+- **Founders:** Names, notable backgrounds (especially if well-known, e.g., Garry Tan)
+- **Product:** What it did, key innovation, target users
+- **Funding:** All rounds with amounts, lead investors, total raised
+- **Traction:** Peak metrics (users, revenue, traffic, growth rates)
+- **Death metrics:** Metrics at time of death/acquisition (to show the decline)
+- **Competitors:** Who won and why, with specific numbers
+- **Death story:** What went wrong — the narrative arc from rise to fall
+- **Key decisions:** The 2-3 moments where things could have gone differently
+
+### Step 3: Map to Failure Patterns
+
+Assign 3-4 patterns from the Pattern Legend that best explain this company's death. For each pattern:
+- Write a 1-sentence explanation of how it applies to THIS company specifically
+- Identify the key evidence (metrics, timeline, competitor actions)
+- Find 2-3 other companies from the database that died of the same pattern (for cross-reference)
+
+### Step 4: Identify Survivors
+
+Find 2-3 well-known companies that were in the same space but survived. For each:
+- What they did differently
+- Their current valuation/status
+- Which pattern they avoided
+
+Then proceed to Phase 2.5 (Style Selection) → Phase 3B (Build Company Presentation).
+
+---
+
+### Phase 3B: Company Autopsy Slide Structure (Mode B — 12 slides)
+
+**Every slide MUST fit 100vh with `overflow: hidden`.**
+
+Same setup as Phase 3 (read viewport-base-autopsy.css, html-template.md, animation-patterns.md). Same theme system. Same JS features.
+
+**Slide 1 — Company Tombstone (Visual Hook)**
+
+A single large tombstone center-screen, not a grid. The company's name and dates displayed prominently.
+
+```
+        ┌─────────────┐
+        │     RIP      │
+        │              │
+        │  [Company]   │
+        │  2008–2013   │
+        │              │
+        │ $10.14M raised│
+        │  $0 revenue  │
+        └──────────────┘
+```
+
+Background: same graveyard atmosphere (fog, particles, radial glow). Subtitle below tombstone: "[one-line description of what the company did]"
+
+**Slide 2 — Company Profile (The Patient)**
+
+2×2 grid introducing the company:
+- **Top-left card:** Product — what it did, key innovation, target users
+- **Top-right card:** Team — founders, notable backgrounds, team size
+- **Bottom-left card:** Funding — rounds, investors, total raised (monospace numbers)
+- **Bottom-right card:** Peak Traction — best metrics (users, growth rate, traffic)
+
+This slide answers: "What was this company and why did people care?"
+
+**Slide 3 — The Rise (Timeline)**
+
+Visual timeline from founding to peak, showing key milestones:
+- Founding → YC batch → First traction milestone → Funding rounds → Peak metric
+- Each milestone as a node on a horizontal or diagonal timeline
+- Green accent for growth moments
+- The timeline should feel like "things were going well..."
+
+**Slide 4 — What Killed [Company] (Pattern Grid)**
+
+2×2 grid of the 3-4 failure patterns, same layout as Mode A's Slide 2. Each card:
+- Pattern code + name
+- Pattern tagline in italics
+- 1-sentence explanation specific to THIS company
+- Key evidence line in monospace
+
+Title: "Four Patterns That Killed [Company]"
+
+**Slides 5-7 — Pattern Deep Dives (mind map, 3 slides for top 3 patterns)**
+
+Same mind-map layout as Mode A, BUT the center node and one branch are about the TARGET COMPANY. The other branches show cross-references from the database.
+
+**Center node:** Pattern name + how it applies to [Company]
+**Left branch:** [Company]'s specific story for this pattern (with detailed metrics, timeline, key quotes)
+**Right branches:** 1-2 other companies from the database that died of the same pattern
+**Bottom:** Counter-strategy / what would have worked
+
+This structure says: "[Company] died of Pattern X — and so did these others."
+
+**Slide 8 — The Decline (Metrics Visualization)**
+
+Show the key metric decline that tells the death story:
+- Peak number (big, green) → Death number (big, red)
+- Percentage decline prominently displayed
+- Timeline context (how long the decline took)
+- What happened during the decline (key events annotated)
+
+Example for Posterous: "15M monthly visitors → 1.33M · 91% decline in 12 months"
+
+**Slide 9 — What Survived**
+
+Same as Mode A's Slide 7. Show 2-3 companies that were in the same space but survived.
+Each card: name, current valuation, what they did differently, which patterns they avoided.
+
+**Slide 10 — Lessons (Survival Playbook)**
+
+4-5 lessons specific to this company's death, each:
+- Lesson title
+- What [Company] did wrong (specific)
+- What they should have done instead (specific, with numbers)
+- Anti-example referencing the company
+
+**Slide 11 — The Autopsy Verdict**
+
+Summary card:
+- "[Company] Risk Score: [X] of 14 patterns applied"
+- Cause of death: 1-sentence summary
+- "If [Company] had done [X], they could have been [Survivor]"
+- Key counterfactual with specific numbers
+
+**Slide 12 — The One Rule**
+
+Single powerful closing statement specific to this company's deadliest pattern.
+Same format as Mode A.
+
+Footer: "Data from startups.rip + 89 YC startups (2017-2025)"
+
+### Output (Mode B)
+
+1. Save as `[company-name]-autopsy.html` (e.g., `posterous-autopsy.html`)
+2. Open with `open [filename].html`
+3. Tell user: file location, slide count, top 3 failure patterns, navigation instructions
 
 ---
 
@@ -421,7 +584,7 @@ SlidePresentation class with:
 
 ---
 
-## Output
+## Output (Mode A)
 
 1. Save as `[industry]-[model]-autopsy.html` (e.g., `ai-b2b-saas-autopsy.html`)
 2. Open with `open [filename].html`
