@@ -320,6 +320,17 @@ Before generating, read these files:
 - [frontend-slides/html-template.md](frontend-slides/html-template.md) — HTML architecture and JS features reference
 - [frontend-slides/animation-patterns.md](frontend-slides/animation-patterns.md) — CSS animation patterns reference
 
+### Design Intelligence (from ui-ux-pro-max)
+
+When making visual decisions, consult these data files from [ui-ux-data/](ui-ux-data/):
+- [ui-ux-data/styles.csv](ui-ux-data/styles.csv) — 50 design styles with CSS implementation details. Use to select appropriate visual style beyond the built-in presets (e.g., Dark Mode OLED row #7 for forensic dark, or pick a contrasting style for non-default themes).
+- [ui-ux-data/typography.csv](ui-ux-data/typography.csv) — 50 font pairings with Google Fonts URLs. Use when the user picks a non-default theme or requests different typography. Row #9 (Developer Mono: JetBrains Mono + IBM Plex Sans) is the closest match to Forensic Dark's default.
+- [ui-ux-data/colors.csv](ui-ux-data/colors.csv) — 21 color palettes by product type. Cross-reference when mapping themes to semantic autopsy variables (accent-primary, accent-secondary, accent-success).
+- [ui-ux-data/charts.csv](ui-ux-data/charts.csv) — Chart type guidance. Reference for Slide 8 (timeline/decline visualization) to pick the best chart format for the data being shown.
+- [ui-ux-data/ux-guidelines.csv](ui-ux-data/ux-guidelines.csv) — UX best practices for layout, spacing, and interaction patterns.
+
+**When to read these files:** Only when generating the presentation (Phase 3/3B). Do NOT read all files upfront — pick the 1-2 most relevant based on the user's theme choice and content needs.
+
 ### Scrolling Behavior
 
 Scroll-snap is already removed in `viewport-base-autopsy.css`. Users scroll freely.
