@@ -16,9 +16,9 @@ Two modes of operation:
 Check the user's message for:
 - **A specific company name or startups.rip URL** → Mode B (Company Autopsy)
 - **An industry / business model description** → Mode A (Industry Autopsy)
-- **Neither** → Ask Phase 1 questions (which include the option to pick Mode B)
+- **Neither** → Ask Phase 1 questions (which include the option to pick Mode B via the "Specific Company" industry option)
 
-**Key rule:** Mode B triggers ONLY when the user explicitly provides a company. The default path is always Mode A (ask questions).
+**Key rule:** Mode B triggers when the user explicitly provides a company name/URL in their message, OR when the user selects "Specific Company" in Phase 1. The default path is always Mode A (ask questions).
 
 ---
 
@@ -37,6 +37,7 @@ Options:
 - SaaS & B2B — Business software, productivity, security, sales tools, analytics
 - Social & Community — Social networks, community, messaging, content, media
 - Marketplace & Commerce — E-commerce, logistics, real estate, two-sided markets
+- Specific Company — I want to autopsy a specific startup (provide name or URL)
 
 **Question 2 — Business Model** (header: "Business Model"):
 How does (or will) the product make money?
@@ -48,6 +49,17 @@ Options:
 - Marketplace — Commission/take-rate on transactions between parties
 
 If the user already specified both in their message, skip and go directly to Phase 2.
+
+**If the user selects "Specific Company":** Skip Question 2 (Business Model). Instead, ask a single follow-up AskUserQuestion:
+
+**Question — Company Name** (header: "Company"):
+Which startup do you want to autopsy? Enter the company name or a startups.rip URL.
+
+Options:
+- Browse startups.rip — I'll look for a company on startups.rip
+- I have a name — I'll type the company name (use "Other" to type it)
+
+Once the user provides a company name or URL, proceed to Phase 1B (Company Research).
 
 ---
 
@@ -460,10 +472,100 @@ Prefer survivors the audience will recognize (Figma, Cursor, Stripe, etc.)
 
 **Slide 8 — Death Timeline**
 
-Horizontal timeline showing when companies matching the user's patterns died (2017→2025):
-- Color-coded dots: red=dead, amber=acquired, green=success
-- Company name + year at each point
-- Cluster labels where multiple companies died in the same year
+**Must look like an actual timeline, not a text list.** A horizontal track with visible dots, connecting line, and company cards dropping below.
+
+**Structure:**
+```
+    2018      2019       2020       2021       2022       2023       2024       2025
+──────●─────────●──●───────●──────────●──●───────●──●──────●─────────●●●●●●──────
+      │         │  │       │          │  │       │  │      │         ││││││
+   [card]    [card][card] [card]   [card][card] ...       ...      [cards]
+```
+
+**CSS for the timeline track:**
+```css
+.timeline-track {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: var(--border-medium);
+    border-radius: 2px;
+    margin: clamp(1rem, 2vh, 2rem) 0;
+}
+/* Gradient overlay on track */
+.timeline-track::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, var(--accent-primary-dim), var(--accent-primary), var(--accent-secondary));
+    border-radius: 2px;
+}
+```
+
+**Year markers sit ON the track:**
+```css
+.timeline-year {
+    position: absolute;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+.timeline-year .year-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 2px solid var(--accent-secondary);
+    margin: 0 auto clamp(4px, 0.5vh, 8px);
+}
+.timeline-year .year-label {
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 0.9vw, 0.85rem);
+    color: var(--accent-secondary);
+    font-weight: 600;
+    text-align: center;
+    position: absolute;
+    top: -24px; left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+```
+
+**Company entries drop BELOW the track as mini-cards:**
+```css
+.timeline-entry {
+    position: absolute;
+    top: 20px;  /* below the track */
+    transform: translateX(-50%);
+    text-align: center;
+    max-width: clamp(80px, 10vw, 120px);
+}
+.timeline-entry .entry-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+}
+.timeline-entry .entry-dot.dead { background: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary-glow); }
+.timeline-entry .entry-dot.acquired { background: var(--accent-secondary); box-shadow: 0 0 6px var(--accent-secondary-glow); }
+.timeline-entry .entry-name {
+    font-size: clamp(0.6rem, 0.8vw, 0.75rem);
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+/* Vertical connector line from track to entry */
+.timeline-entry::before {
+    content: '';
+    position: absolute;
+    top: -20px; left: 50%;
+    width: 1px; height: 16px;
+    background: var(--border-medium);
+}
+```
+
+**Layout approach:** Use a container with `position: relative` for the track. Year markers are positioned with percentage-based `left` values (e.g., 2018=0%, 2025=100%). Companies within each year are stacked vertically below their year marker with small offsets to avoid overlap.
+
+**For years with many companies (2024-2025):** Stack entries in 2 columns below the year dot, or use smaller font. Add a "peak extinction" badge: `"Peak: 2024-2025 (N companies)"` in monospace with red accent.
+
+**Legend:** Below the timeline container, show colored dots with labels: `● Dead` (red) `● Acquired` (amber). Keep it small and left-aligned.
+
+**Animation:** The track line draws from left to right (via `width` transition from 0 to 100%), then dots appear with staggered delays.
 
 ---
 
@@ -523,18 +625,105 @@ Small footer text: "Data from 89 YC startups (2017-2025) · startups.rip · [N] 
 All component styles use semantic CSS variables — never hardcoded hex colors. The theme selected in Phase 2.5 provides the actual color values.
 
 ### Tombstone Grid (Slide 1)
+
+**The graveyard must look like an actual graveyard, not an admin dashboard.** Tombstones need visible contrast against the background, texture, and atmosphere.
+
+**Grid layout:** Tombstones fill the ENTIRE viewport using `position: absolute; inset: 0`. Title overlays on top with gradient fade. Fog overlays from bottom.
+
 ```css
-.tombstone {
-    background: linear-gradient(180deg, var(--bg-card-hover, #1e1e24) 0%, var(--bg-card, #14141a) 100%);
-    border-radius: 40% 40% 4px 4px / 25% 25% 4px 4px;
-    border: 1px solid var(--border-subtle);
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+/* Grid fills entire slide */
+.tombstone-grid {
+    position: absolute; inset: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(90px, 10vw, 140px), 1fr));
+    gap: clamp(10px, 1.5vw, 18px);
+    padding: clamp(2rem, 4vw, 4rem) clamp(2rem, 5vw, 5rem);
+    align-content: center;
+    z-index: 1;
 }
-.tombstone .t-name { color: var(--text-secondary); }
-.tombstone .t-year { color: var(--text-muted); }
+
+/* Each tombstone = gravestone shape with VISIBLE contrast */
+.tombstone {
+    background: linear-gradient(180deg, #2a2a32 0%, #1a1a22 60%, #141418 100%);
+    border-radius: 40% 40% 4px 4px / 25% 25% 4px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    aspect-ratio: 3 / 4;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: clamp(6px, 1vw, 12px);
+    opacity: 0;
+    animation: tombstone-rise 0.8s ease forwards;
+}
+
+/* Stone texture via pseudo-element */
+.tombstone::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+}
+
+/* RIP engraving */
+.tombstone .rip {
+    font-family: var(--font-mono);
+    font-size: clamp(0.4rem, 0.6vw, 0.5rem);
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+.tombstone .name {
+    font-family: var(--font-display);
+    font-size: clamp(0.65rem, 1vw, 0.9rem);
+    color: var(--text-primary);
+    line-height: 1.2;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.tombstone .batch {
+    font-family: var(--font-mono);
+    font-size: clamp(0.45rem, 0.7vw, 0.6rem);
+    color: var(--text-muted);
+    margin-top: 2px;
+}
 ```
-Tier 1: full opacity, larger padding. Tier 2: opacity 0.5, smaller. Slight rotations via nth-child (-2deg, 1deg, -1deg, 2deg, 0deg). Fog gradient from bottom.
+
+**Rotations via nth-child:**
+```css
+.tombstone:nth-child(5n+1) { --rot: -2deg; }
+.tombstone:nth-child(5n+2) { --rot: 1deg; }
+.tombstone:nth-child(5n+3) { --rot: -1deg; }
+.tombstone:nth-child(5n+4) { --rot: 2deg; }
+.tombstone:nth-child(5n+5) { --rot: 0deg; }
+
+@keyframes tombstone-rise {
+    from { opacity: 0; transform: translateY(20px) rotate(var(--rot, 0deg)); }
+    to { opacity: 1; transform: translateY(0) rotate(var(--rot, 0deg)); }
+}
+```
+
+**Tier differentiation:**
+- Tier 1: animation ends at `opacity: 1`, normal size
+- Tier 2: separate keyframes ending at `opacity: 0.35` and `scale(0.85)`
+
+**Staggered animation:** Each tombstone gets `animation-delay` incrementing by 0.02s via inline style.
+
+**Atmosphere layers (z-index stack):**
+1. `.tombstone-grid` → z-index: 1
+2. `.graveyard-fog` (bottom 35%, gradient to transparent) → z-index: 5
+3. `.particle` (red dots floating upward from bottom: 0) → z-index: 6
+4. `.graveyard-header` (title + subtitle, gradient fade from top) → z-index: 10
+
+**Header overlay:** `background: linear-gradient(180deg, rgba(8,9,13,0.95) 0%, rgba(8,9,13,0.7) 60%, transparent 100%)`
+
+**Red radial glow:** `.graveyard-slide { background: radial-gradient(ellipse at 50% 20%, rgba(220,38,38,0.06), transparent 50%), var(--bg-primary); }`
+
+**Particles:** 5-7 tiny 2px dots with `animation: float-up linear infinite` rising from bottom to `-100vh`. Durations 8-12s, staggered delays.
+
+**Target tombstone count:** 40-55 total to fill the viewport grid. Add extra Tier 2 companies from the database if needed.
 
 ### Mind Map (Pattern Slides)
 - Center: pattern node with `border: 2px solid var(--accent-primary)` and `box-shadow: 0 0 30px var(--accent-primary-glow)`
@@ -554,9 +743,14 @@ Tier 1: full opacity, larger padding. Tier 2: opacity 0.5, smaller. Slight rotat
 - `.sv-name`: `color: var(--accent-success)`
 - `.sv-avoided`: `color: var(--accent-success)`, `background: var(--accent-success-glow)`
 
-### Timeline Dots (Slide 8)
-- `.timeline-dot.dead`: `background: var(--accent-primary)`
-- `.timeline-dot.acquired`: `background: var(--accent-secondary)`
+### Timeline (Slide 8)
+- `.timeline-track`: 4px horizontal line with gradient (accent-primary → accent-secondary), full width
+- `.timeline-track::after`: gradient overlay drawing animation (left to right)
+- `.timeline-year`: positioned on track with percentage `left`, contains `.year-dot` (12px circle on track) + `.year-label` (above track)
+- `.timeline-entry`: drops below track with `::before` vertical connector line (1px), contains `.entry-dot` + `.entry-name`
+- `.entry-dot.dead`: `background: var(--accent-primary)`, `box-shadow: 0 0 6px var(--accent-primary-glow)`
+- `.entry-dot.acquired`: `background: var(--accent-secondary)`, `box-shadow: 0 0 6px var(--accent-secondary-glow)`
+- Legend below: colored dots with labels, small monospace text
 
 ### Playbook Rules (Slides 9-10)
 - `.rule-num`: `color: var(--accent-primary)`
